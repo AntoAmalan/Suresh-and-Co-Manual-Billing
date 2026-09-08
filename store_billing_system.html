@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Store Billing System</title>
+<style>
+  * { box-sizing: border-box; }
+
+  :root {
+    --ink: #172033;
+    --muted: #667085;
+    --line: #dfe3ea;
+    --soft: #f6f7f9;
+    --card: #ffffff;
+    --accent: #1f5eff;
+    --accent-dark: #1647c7;
+    --danger: #c62828;
+  }
+
+  body {
+    margin: 0;
+    font-family: Inter, "Segoe UI", Arial, sans-serif;
+    background: #eef1f5;
+    color: var(--ink);
+  }
+
+  .app {
+    max-width: 1080px;
+    margin: 0 auto;
+    padding: 28px 18px 40px;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 35px rgba(16,24,40,.08);
+  }
+
+  .app-header {
+    padding: 26px 28px 20px;
+    background: linear-gradient(180deg, #ffffff, #fafbfc);
+    border-bottom: 1px solid var(--line);
+  }
+
+  h1 {
+    margin: 0;
+    text-align: center;
+    font-size: 30px;
+    letter-spacing: .4px;
+    font-weight: 800;
+  }
+
+  .subtitle {
+    text-align: center;
+    color: var(--muted);
+    margin: 5px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+  }
+
+  .content { padding: 24px 28px 28px; }
+
+  .meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+
+  .meta-card {
+    background: var(--soft);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 15px;
+  }
+
+  .meta-label {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .7px;
+    margin-bottom: 4px;
+  }
+
+  .meta-value {
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  .items-title {
+    font-size: 16px;
+    font-weight: 800;
+    margin: 0 0 10px;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    padding: 10px 9px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  th {
+    text-align: left;
+    background: #f8fafc;
+    color: #475467;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    white-space: nowrap;
+  }
+
+  tbody tr:last-child td { border-bottom: 0; }
+
+  input {
+    width: 100%;
+    padding: 10px 11px;
+    border: 1px solid #cfd5df;
+    border-radius: 7px;
+    background: #fff;
+    color: var(--ink);
+    font-size: 15px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+
+  input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(31,94,255,.10);
+  }
+
+  .qty { width: 85px; }
+  .price { width: 125px; }
+  .amount {
+    font-weight: 750;
+    white-space: nowrap;
+    text-align: right;
+  }
+
+  button {
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 750;
+    transition: transform .05s, background .15s;
+  }
+
+  button:active { transform: translateY(1px); }
+
+  .add {
+    margin-top: 13px;
+    background: #edf2ff;
+    color: #234ebd;
+  }
+
+  .add:hover { background: #e1e9ff; }
+
+  .remove {
+    background: #fff0f0;
+    color: var(--danger);
+    padding: 8px 10px;
+  }
+
+  .remove:hover { background: #ffe4e4; }
+
+  .bottom {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 30px;
+    margin-top: 25px;
+  }
+
+  .note {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.5;
+    max-width: 360px;
+    padding-top: 6px;
+  }
+
+  .summary {
+    width: 360px;
+    max-width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    padding: 15px 17px;
+    background: #fbfcfe;
+  }
+
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 7px 0;
+    font-size: 14px;
+  }
+
+  .summary-row > span:first-child { color: #475467; }
+
+  .summary input {
+    width: 125px;
+    text-align: right;
+    padding: 8px 9px;
+  }
+
+  .grand {
+    border-top: 2px solid var(--ink);
+    margin-top: 7px;
+    padding-top: 12px;
+    font-size: 18px;
+    font-weight: 850;
+  }
+
+  .grand span { color: var(--ink) !important; }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 22px;
+  }
+
+  .clear { background: #eef0f3; color: #344054; }
+  .generate { background: #172033; color: white; }
+  .generate:hover { background: #0d1422; }
+  .print { background: var(--accent); color: white; }
+  .print:hover { background: var(--accent-dark); }
+
+  .receipt {
+    display: none;
+  }
+
+  /* Thermal receipt */
+  @media print {
+    body { background: white; }
+    .app { display: none !important; }
+
+    .receipt {
+      display: block;
+      width: 80mm;
+      margin: 0;
+      padding: 3.5mm 3mm;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 11px;
+      line-height: 1.25;
+      color: #000;
+      background: #fff;
+    }
+
+    .receipt-header {
+      text-align: center;
+      margin-bottom: 5px;
+    }
+
+    .receipt-header h2 {
+      margin: 0 0 4px;
+      font-size: 18px;
+      line-height: 1.15;
+      font-weight: 900;
+      letter-spacing: .3px;
+    }
+
+    .receipt-header p {
+      margin: 2px 0;
+      font-size: 10px;
+    }
+
+    .line {
+      border-top: 1px dashed #000;
+      margin: 6px 0;
+    }
+
+    .rmeta {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .rtable {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .rtable td {
+      padding: 2px 0;
+      border: 0;
+      vertical-align: top;
+    }
+
+    .rname {
+      width: 46%;
+      word-break: break-word;
+    }
+
+    .rqty {
+      width: 13%;
+      text-align: right;
+    }
+
+    .rprice {
+      width: 20%;
+      text-align: right;
+    }
+
+    .ramount {
+      width: 21%;
+      text-align: right;
+    }
+
+    .rtotal {
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .thanks {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: 700;
+    }
+
+
+    .receipt-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .bill-meta {
+      text-align: left;
+    }
+
+    .datetime-meta {
+      margin-left: auto;
+      text-align: right;
+      line-height: 1.35;
+    }
+
+    .rtable thead th {
+      padding: 2px 0 3px;
+      border: 0;
+      border-bottom: 1px dashed #000;
+      background: #fff;
+      color: #000;
+      font-size: 10px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    .rtable td {
+      padding: 3px 0;
+      border: 0;
+      vertical-align: top;
+    }
+
+    .rtable .col-item, .rtable .rname { width: 39%; text-align: left; }
+    .rtable .col-qty, .rtable .rqty { width: 12%; text-align: right; }
+    .rtable .col-unitname, .rtable .runitname { width: 12%; text-align: center; }
+    .rtable .col-price, .rtable .rprice { width: 20%; text-align: right; }
+    .rtable .col-total, .rtable .ramount { width: 17%; text-align: right; }
+
+    .receipt-summary {
+      width: 100%;
+      margin: 0;
+      padding: 0;
+    }
+
+    .total-row {
+      display: grid;
+      grid-template-columns: 83% 17%;
+      width: 100%;
+      align-items: baseline;
+      line-height: 1.35;
+    }
+
+    .total-row span:first-child {
+      text-align: right;
+      padding-right: 10px;
+    }
+
+    .total-row span:last-child {
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .summary-divider {
+      border-top: 1px solid #000;
+      margin: 4px 0;
+      width: 100%;
+    }
+
+    .grand-row {
+      font-weight: 900;
+      font-size: 14px;
+    }
+
+    .receipt-footer {
+      width: 100%;
+      text-align: center;
+      margin-top: 15px;
+      font-weight: 700;
+      line-height: 1.4;
+    }
+
+    @page {
+      size: 80mm auto;
+      margin: 0;
+    }
+  }
+
+  @media (max-width: 760px) {
+    .app { padding: 10px; }
+    .app-header { padding: 22px 16px 17px; }
+    .content { padding: 17px 16px 20px; }
+    h1 { font-size: 25px; }
+    .meta { grid-template-columns: 1fr; }
+    .bottom { flex-direction: column; }
+    .summary { width: 100%; }
+    .actions { flex-wrap: wrap; }
+    .actions button { flex: 1; }
+  }
+
+  .receipt.preview {
+    display: block !important;
+    width: 380px;
+    max-width: calc(100% - 20px);
+    margin: 25px auto !important;
+    padding: 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    font-family: "Courier New", Courier, monospace;
+    font-size: 11px;
+    line-height: 1.25;
+    color: #000;
+  }
+
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="panel">
+    <div class="app-header">
+      <h1>Suresh and Co</h1>
+      <div class="subtitle">Billing & POS</div>
+    </div>
+    <div class="content">
+
+    <div class="meta">
+      <div class="meta-card">
+        <span class="meta-label">Bill Number</span>
+        <span class="meta-value" id="billNo"></span>
+      </div>
+      <div class="meta-card">
+        <span class="meta-label">Date & Time</span>
+        <span class="meta-value" id="dateTime"></span>
+      </div>
+    </div>
+
+    <div class="items-title">Bill Items</div>
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Product Name</th>
+          <th>Quantity</th>
+          <th>Unit</th>
+          <th>Price</th>
+          <th>Total</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="items"></tbody>
+    </table>
+    </div>
+
+    <button class="add" onclick="addItem()">+ Add Item</button>
+
+    <div class="bottom">
+      <div class="note">Enter quantity and choose a unit (pcs, kg or L). Price is for one entered unit.</div>
+      <div class="summary">
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span id="subtotal">₹0.00</span>
+      </div>
+      <div class="summary-row">
+        <span>Discount</span>
+        <input id="discount" type="number" min="0" step="0.01" value="0" oninput="calculate()">
+      </div>
+      <div class="summary-row">
+        <span>GST (%)</span>
+        <input id="gstRate" type="number" min="0" step="0.01" value="0" oninput="calculate()">
+      </div>
+      <div class="summary-row">
+        <span>GST Amount</span>
+        <span id="gstAmount">₹0.00</span>
+      </div>
+      <div class="summary-row grand">
+        <span>GRAND TOTAL</span>
+        <span id="grandTotal">₹0.00</span>
+      </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="clear" onclick="clearBill()">Clear</button>
+      <button class="generate" onclick="generateBill()">Generate Bill</button>
+      <button class="print" onclick="printBill()">Print</button>
+    </div>
+    </div>
+  </div>
+</div>
+
+<div class="receipt" id="receipt">
+  <div class="receipt-header">
+    <h2>Suresh and Co</h2>
+    <p>78, Main Road, Vickramasingapuram, Tirunelveli</p>
+    <p>Contact: 8682819207 / 9942328200</p>
+  </div>
+
+  <div class="line"></div>
+
+  <div class="receipt-meta">
+    <div class="bill-meta">Bill: <span id="rBillNo"></span></div>
+    <div class="datetime-meta">
+      <div>Date: <span id="rDate"></span></div>
+      <div>Time: <span id="rTime"></span></div>
+    </div>
+  </div>
+
+  <div class="line"></div>
+
+  <table class="rtable">
+    <thead>
+      <tr>
+        <th class="col-item">Item</th>
+        <th class="col-qty">Qty</th>
+        <th class="col-unitname">Unit</th>
+        <th class="col-price">Unit Price</th>
+        <th class="col-total">Total</th>
+      </tr>
+    </thead>
+    <tbody id="rItems"></tbody>
+  </table>
+
+  <div class="line"></div>
+
+  <div class="receipt-summary">
+    <div class="total-row"><span>Subtotal</span><span id="rSubtotal"></span></div>
+    <div class="total-row"><span>Discount</span><span id="rDiscount"></span></div>
+    <div class="total-row"><span>GST</span><span id="rGst"></span></div>
+    <div class="summary-divider"></div>
+    <div class="total-row grand-row"><span>TOTAL</span><span id="rTotal"></span></div>
+  </div>
+
+  <div class="receipt-footer">Thank You!<br>Visit Again</div>
+</div>
+
+<script>
+let billNumber = 1;
+try {
+  billNumber = Number(localStorage.getItem("nextBillNumber") || 1) || 1;
+} catch (e) {
+  billNumber = 1;
+}
+
+function money(n) {
+  return "₹" + Number(n || 0).toFixed(2);
+}
+
+function updateDate() {
+  document.getElementById("billNo").textContent = String(billNumber).padStart(6, "0");
+  document.getElementById("dateTime").textContent =
+    new Date().toLocaleString("en-IN", {dateStyle:"short", timeStyle:"short"});
+}
+updateDate();
+
+function addItem(name="", qty=1, unit="pcs", price="") {
+  const row = document.createElement("tr");
+  row.innerHTML = `
+    <td><input class="product" type="text" placeholder="Product name" value="${escapeHtml(name)}"></td>
+    <td><input class="qty" type="number" min="0" step="any" value="${qty}"></td>
+    <td>
+      <select class="unit-select">
+        <option value="pcs" ${unit === "pcs" ? "selected" : ""}>pcs</option>
+        <option value="kg" ${unit === "kg" ? "selected" : ""}>kg</option>
+        <option value="L" ${unit === "L" ? "selected" : ""}>L</option>
+      </select>
+    </td>
+    <td><input class="price" type="number" min="0" step="0.01" placeholder="0.00" value="${price}"></td>
+    <td class="amount">₹0.00</td>
+    <td><button class="remove" onclick="this.closest('tr').remove(); calculate();">×</button></td>
+  `;
+  document.getElementById("items").appendChild(row);
+  row.querySelectorAll("input").forEach(i => i.addEventListener("input", calculate));
+  row.querySelector(".unit-select").addEventListener("change", calculate);
+  calculate();
+  row.querySelector(".product").focus();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#039;"
+  }[c]));
+}
+
+function calculate() {
+  let subtotal = 0;
+  document.querySelectorAll("#items tr").forEach(row => {
+    const qty = Number(row.querySelector(".qty").value) || 0;
+    const price = Number(row.querySelector(".price").value) || 0;
+    const total = qty * price;
+    row.querySelector(".amount").textContent = money(total);
+    subtotal += total;
+  });
+
+  const discount = Number(document.getElementById("discount").value) || 0;
+  const gstRate = Number(document.getElementById("gstRate").value) || 0;
+  const taxable = Math.max(0, subtotal - discount);
+  const gst = taxable * gstRate / 100;
+  const grand = taxable + gst;
+
+  document.getElementById("subtotal").textContent = money(subtotal);
+  document.getElementById("gstAmount").textContent = money(gst);
+  document.getElementById("grandTotal").textContent = money(grand);
+  return {subtotal, discount, gstRate, gst, grand};
+}
+
+function generateBill() {
+  const totals = calculate();
+  const rows = document.querySelectorAll("#items tr");
+  const rItems = document.getElementById("rItems");
+  rItems.innerHTML = "";
+
+  rows.forEach(row => {
+    const name = row.querySelector(".product").value.trim();
+    const qty = Number(row.querySelector(".qty").value) || 0;
+    const unit = row.querySelector(".unit-select").value;
+    const price = Number(row.querySelector(".price").value) || 0;
+
+    if (!name && !qty && !price) return;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML =
+      `<td class="rname">${escapeHtml(name || "Item")}</td>` +
+      `<td class="rqty">${qty}</td>` +
+      `<td class="runitname">${escapeHtml(unit)}</td>` +
+      `<td class="rprice">${money(price)}</td>` +
+      `<td class="ramount">${money(qty * price)}</td>`;
+    rItems.appendChild(tr);
+  });
+
+  const now = new Date();
+  document.getElementById("rBillNo").textContent = String(billNumber).padStart(6, "0");
+  document.getElementById("rDate").textContent = now.toLocaleDateString("en-IN");
+  document.getElementById("rTime").textContent =
+    now.toLocaleTimeString("en-IN", {hour: "2-digit", minute: "2-digit"});
+  document.getElementById("rSubtotal").textContent = money(totals.subtotal);
+  document.getElementById("rDiscount").textContent = money(totals.discount);
+  document.getElementById("rGst").textContent =
+    money(totals.gst) + (totals.gstRate ? ` (${totals.gstRate}%)` : "");
+  document.getElementById("rTotal").textContent = money(totals.grand);
+
+  const receipt = document.getElementById("receipt");
+  receipt.classList.add("preview");
+  receipt.style.display = "block";
+  receipt.style.margin = "25px auto";
+  receipt.style.background = "white";
+  receipt.style.border = "1px solid #ddd";
+  receipt.style.padding = "15px";
+  receipt.style.maxWidth = "380px";
+
+  return totals;
+}
+function printBill() {
+  generateBill();
+  setTimeout(() => window.print(), 100);
+}
+
+function clearBill() {
+  if (!confirm("Clear the current bill?")) return;
+  document.getElementById("items").innerHTML = "";
+  document.getElementById("discount").value = 0;
+  document.getElementById("gstRate").value = 0;
+  addItem();
+}
+
+addItem();
+</script>
+</body>
+</html>
